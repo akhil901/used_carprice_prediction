@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[1]:
+
+
+#!/usr/bin/env python
+# coding: utf-8
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,20 +18,17 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 get_ipython().run_line_magic('matplotlib', 'inline')
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
-
+#input the data_file you want to predict
 df = pd.read_csv("cars_price.csv")
 
 
 df['volume(cm3)'].fillna(df['volume(cm3)'].median(),inplace=True)
 
-
-
 df.drop(['segment'],axis=1,inplace=True)
-
 df.dropna(inplace=True,how='any',axis=0)
-
-df.isna().sum()
 
 # labelencoding based on the count
 def label_encoding(column):
@@ -57,44 +60,26 @@ df.head()
 x = df.drop(['priceUSD'],axis=1)
 y = df['priceUSD']
 
-x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=42)
 
-from sklearn.metrics import r2_score
-from sklearn.model_selection import ShuffleSplit, cross_val_score
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import mean_squared_error
-from sklearn.svm import SVR
-
-#defining function to get r2score
-def r2score(model,X,y):
-    cv = ShuffleSplit(n_splits=5, test_size=0.3, random_state=0)
-    r2scores = cross_val_score(model,x_train,y_train,cv = cv,scoring = 'r2')
-    return(r2scores.mean())
-
-#rootmeansquareerror
-def rmse(model,x,y):
-    cv = ShuffleSplit(n_splits=5, test_size=0.3, random_state=0)
-    rmse = -cross_val_score(model,x_train,y_train,cv = cv,scoring = 'neg_mean_squared_error')
-    return(np.sqrt(rmse.mean()))
+# In[2]:
 
 
-# # Random Forest Regressor
+import pickle
+# Load the Model back from file
+Pkl_Filename = "Pickle_RFR_Model.pkl" 
+with open(Pkl_Filename, 'rb') as file:  
+    Pickled_RFR_Model = pickle.load(file)
 
 
-rfr = RandomForestRegressor(random_state=42,bootstrap=True,n_estimators=50,max_features='log2')
-r2_rfr=r2score(rfr,x_train,y_train)
-rmse_rfr = rmse(rfr,x_train,y_train)
-print("the r2_score on cross_validation_data",r2_rfr)
-print("the rmse_score on cross_validation_data",rmse_rfr)
+# In[3]:
 
 
-rfr.fit(x_train,y_train)
-y_pred = rfr.predict(x_test)
-print("the r2_score on test_data",r2_score(y_test,y_pred))
-print("the rmse_score on test_data",np.sqrt(mean_squared_error(y_test,y_pred)))
+y_pred = Pickled_RFR_Model.predict(x)
 
 
+# In[5]:
 
 
+print("the r2_score on test_data",r2_score(y,y_pred))
+print("the rmse_score on test_data",np.sqrt(mean_squared_error(y,y_pred)))
 
